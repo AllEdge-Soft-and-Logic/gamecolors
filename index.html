@@ -505,7 +505,14 @@
 
         canvas.addEventListener("touchstart", (e) => {
             e.preventDefault();
-            start(e);
+
+            if (tool === "bucket") {
+                saveState();
+                const { x, y } = getPos(e);
+                floodFillFast(Math.floor(x), Math.floor(y), hexToRgb(color));
+            } else {
+                start(e);
+            }
         }, { passive: false });
 
         canvas.addEventListener("touchmove", (e) => {
