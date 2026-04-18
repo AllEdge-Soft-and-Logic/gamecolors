@@ -5,82 +5,261 @@
     <meta charset="UTF-8">
     <title>🎨 Coloring App Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <style>
         body {
-            font-family: Arial;
-            text-align: center;
-            background: #eef2f7;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f6fa;
+            overflow: hidden;
         }
 
-        .toolbar {
-            margin: 10px;
-        }
-
-        button,
-        input {
-            padding: 8px;
-            margin: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
-        canvas {
-            border: 2px solid #333;
-            background: white;
-            touch-action: none;
-        }
-
-        .gallery {
+        /* Top bar */
+        .header {
+            height: 50px;
+            background: #007bff;
+            color: #fff;
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
             justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Canvas full screen */
+        .canvas-container {
+            position: absolute;
+            top: 50px;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Bottom toolbar */
+        .toolbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 85px;
+            background: #fff;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.15);
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        /* Buttons */
+        .tool-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 11px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tool-btn span {
+            font-size: 24px;
+        }
+
+        .tool-btn.active {
+            color: #007bff;
+            transform: scale(1.1);
+        }
+
+        /* Floating color picker */
+        .color-floating {
+            position: fixed;
+            right: 15px;
+            bottom: 100px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Gallery drawer */
+        .gallery {
+            position: fixed;
+            bottom: 85px;
+            width: 100%;
+            overflow-x: auto;
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: #fff;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .gallery img {
-            width: 100px;
-            height: 80px;
-            object-fit: contain;
-            margin: 8px;
-            cursor: pointer;
-            border-radius: 6px;
-            border: 2px solid transparent;
-            background: #fff;
+            width: 90px;
+            border-radius: 10px;
+            flex-shrink: 0;
         }
 
-        .gallery img:hover {
-            border: 2px solid #007bff;
-            transform: scale(1.05);
+        .color-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 110px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            font-size: 28px;
+            background: #ffcc00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        /* Popup */
+        .palette-popup {
+            position: fixed;
+            bottom: 190px;
+            right: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            display: none;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+
+        @keyframes pop {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .colors {
+            display: grid;
+            grid-template-columns: repeat(4, 50px);
+            gap: 12px;
+        }
+
+        .colors div {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s, border 0.2s;
+        }
+
+        .colors div:hover {
+            transform: scale(1.2);
+        }
+
+        .colors div.active {
+            border: 4px solid #333;
+        }
+
+        .tool-btn:active {
+            transform: scale(0.9);
+        }
+
+        .color-btn:active {
+            transform: scale(0.9);
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+            touch-action: none;
+            /* 🔥 important for mobile */
+        }
+
+        .palette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>🎨 Coloring App Pro</h2>
+    <div class="app">
 
-    <div class="toolbar">
-        <input type="color" id="colorPicker">
-        <button onclick="setTool('pen')">🖌 Pen</button>
-        <button onclick="setTool('bucket')">🪣 Fill</button>
-        <button onclick="undo()">↩ Undo</button>
-        <button onclick="clearCanvas()">🧹 Clear</button>
-        <button onclick="download()">⬇ Download</button>
+        <div class="header">🎨 Coloring App</div>
+
+        <div class="canvas-container">
+            <canvas id="canvas" width="600" height="450"></canvas>
+        </div>
+
+        <!-- Floating Color -->
+        <div class="color-floating">
+            <div class="palette-overlay" id="paletteOverlay" onclick="togglePalette()"></div>
+            <div class="palette-popup" id="palettePopup">
+                <div class="colors">
+                    <div style="background:#ff0000" onclick="pickColor('#ff0000', this)"></div>
+                    <div style="background:#ff9900" onclick="pickColor('#ff9900', this)"></div>
+                    <div style="background:#ffff00" onclick="pickColor('#ffff00', this)"></div>
+                    <div style="background:#00cc00" onclick="pickColor('#00cc00', this)"></div>
+                    <div style="background:#0099ff" onclick="pickColor('#0099ff', this)"></div>
+                    <div style="background:#9900cc" onclick="pickColor('#9900cc', this)"></div>
+                    <div style="background:#000000" onclick="pickColor('#000000', this)"></div>
+                    <div style="background:#ffffff;border:2px solid #ccc" onclick="pickColor('#ffffff', this)"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery (scroll like app) -->
+        <div class="gallery">
+            <img src="img/part.jpg" onclick="loadImage(this.src)">
+            <img src="img/bird.jpg" onclick="loadImage(this.src)">
+            <img src="img/tiger.jpg" onclick="loadImage(this.src)">
+            <img src="img/lion.jpg" onclick="loadImage(this.src)">
+        </div>
+
+        <!-- Bottom Toolbar -->
+        <div class="toolbar">
+            <div class="tool-btn">
+                <span>📏</span>
+                <input type="range" min="1" max="20" value="4" id="brushSize">
+            </div>
+            <div class="color-btn" id="colorBtn" onclick="togglePalette()">🎨</div>
+            <div class="tool-btn" id="penBtn" onclick="setToolUI('pen')">
+                <span>🖌</span>Pen
+            </div>
+
+            <div class="tool-btn" id="bucketBtn" onclick="setToolUI('bucket')">
+                <span>🪣</span>Fill
+            </div>
+
+            <div class="tool-btn" onclick="undo()">
+                <span>↩</span>Undo
+            </div>
+
+            <div class="tool-btn" onclick="clearCanvas()">
+                <span>🧹</span>Clear
+            </div>
+
+            <div class="tool-btn" onclick="download()">
+                <span>⬇</span>Save
+            </div>
+        </div>
     </div>
-
-    <canvas id="canvas" width="600" height="450"></canvas>
-
-    <h3>📸 Choose Image</h3>
-    <div class="gallery">
-        <img src="img/part.jpg" onclick="loadImage(this.src)">
-        <img src="img/bird.jpg" onclick="loadImage(this.src)">
-        <img src="img/tiger.jpg" onclick="loadImage(this.src)">
-        <img src="img/butterfly.jpg" onclick=" loadImage(this.src)">
-        <img src="img/lion.jpg" onclick=" loadImage(this.src)">
-        <img src="img/1.jpg" onclick=" loadImage(this.src)">
-    </div>
-
     <script>
+
         const canvas = document.getElementById("canvas");
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
@@ -91,8 +270,41 @@
         const MAX_HISTORY = 15;
 
         // Color picker
-        document.getElementById("colorPicker").oninput = e => color = e.target.value;
+        let paletteOpen = false;
 
+        function togglePalette() {
+            const popup = document.getElementById("palettePopup");
+            const overlay = document.getElementById("paletteOverlay");
+
+            paletteOpen = !paletteOpen;
+
+            popup.style.display = paletteOpen ? "block" : "none";
+            overlay.style.display = paletteOpen ? "block" : "none";
+        }
+        function pickColor(c, el) {
+            color = c;
+
+            // Remove old selection
+            document.querySelectorAll(".colors div").forEach(d => d.classList.remove("active"));
+
+            // Add new selection
+            if (el) el.classList.add("active");
+
+            // Update floating button color
+            document.getElementById("colorBtn").style.background = c;
+
+            togglePalette();
+        }
+        // Close when clicking outside
+        document.addEventListener("click", function (e) {
+            const popup = document.getElementById("palettePopup");
+            const btn = document.querySelector(".color-btn");
+
+            if (!popup.contains(e.target) && !btn.contains(e.target)) {
+                popup.style.display = "none";
+                paletteOpen = false;
+            }
+        });
         // Tool
         function setTool(t) {
             tool = t;
@@ -129,13 +341,33 @@
 
             saveState();
         }
+        function setToolUI(t) {
+            tool = t;
 
+            document.getElementById("penBtn").classList.remove("active");
+            document.getElementById("bucketBtn").classList.remove("active");
+
+            if (t === "pen") document.getElementById("penBtn").classList.add("active");
+            if (t === "bucket") document.getElementById("bucketBtn").classList.add("active");
+        }
+        function resizeCanvas() {
+            const container = document.querySelector(".canvas-container");
+
+            canvas.width = container.clientWidth * 0.95;
+            canvas.height = container.clientHeight * 0.95;
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        function setColor(c) {
+            color = c;
+        }
         function draw(e) {
             if (!painting || tool !== "pen") return;
 
             const { x, y } = getPos(e);
 
-            ctx.lineWidth = 4;
+            ctx.lineWidth = document.getElementById("brushSize").value;
             ctx.lineCap = "round";
             ctx.strokeStyle = color;
 
@@ -271,8 +503,15 @@
         canvas.addEventListener("mouseup", end);
         canvas.addEventListener("mouseleave", end);
 
-        canvas.addEventListener("touchstart", e => { e.preventDefault(); start(e); });
-        canvas.addEventListener("touchmove", e => { e.preventDefault(); draw(e); });
+        canvas.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            start(e);
+        }, { passive: false });
+
+        canvas.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            draw(e);
+        }, { passive: false });
         canvas.addEventListener("touchend", end);
     </script>
 
