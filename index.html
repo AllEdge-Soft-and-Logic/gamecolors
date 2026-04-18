@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>🎨 Coloring App Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background: #eef2f7;
+        }
+
+        .toolbar {
+            margin: 10px;
+        }
+
+        button,
+        input {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        canvas {
+            border: 2px solid #333;
+            background: white;
+            touch-action: none;
+        }
+
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .gallery img {
+            width: 100px;
+            height: 80px;
+            object-fit: contain;
+            margin: 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            background: #fff;
+        }
+
+        .gallery img:hover {
+            border: 2px solid #007bff;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>🎨 Coloring App Pro</h2>
+
+    <div class="toolbar">
+        <input type="color" id="colorPicker">
+        <button onclick="setTool('pen')">🖌 Pen</button>
+        <button onclick="setTool('bucket')">🪣 Fill</button>
+        <button onclick="undo()">↩ Undo</button>
+        <button onclick="clearCanvas()">🧹 Clear</button>
+        <button onclick="download()">⬇ Download</button>
+    </div>
+
+    <canvas id="canvas" width="600" height="450"></canvas>
+
+    <h3>📸 Choose Image</h3>
+    <div class="gallery">
+        <img src="img/part.jpg" onclick="loadImage(this.src)">
+        <img src="img/bird.jpg" onclick="loadImage(this.src)">
+        <img src="img/tiger.jpg" onclick="loadImage(this.src)">
+        <img src="img/butterfly.jpg" onclick=" loadImage(this.src)">
+        <img src="img/lion.jpg" onclick=" loadImage(this.src)">
+        <img src="img/1.jpg" onclick=" loadImage(this.src)">
+    </div>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+        let painting = false;
+        let tool = "pen";
+        let color = "#000000";
+        let history = [];
+        const MAX_HISTORY = 20;
+
+        // Color picker
+        document.getElementById("colorPicker").oninput = e => color = e.target.value;
+
+        // Tool switch
+        function setTool(t) {
+            tool = t;
+        }
+
+        // Save state
+        function saveState() {
+            if (history.length >= MAX_HISTORY) history.shift();
+            history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        }
+
+        // Undo
+        function undo() {
+            if (history.length > 0) {
+                ctx.putImageData(history.pop(), 0, 0);
+            }
+        }
+
+        // Get pointer position
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        // Drawing
+        function start(e) {
+            if (tool !== "pen") return;
+
+            painting = true;
+            ctx.beginPath();
+            saveState();
+
+            const { x, y } = getPos(e);
+            ctx.moveTo(x, y);
+        }
+
+        function draw(e) {
+            if (!painting || tool !== "pen") return;
+
+            const { x, y } = getPos(e);
+
+            ctx.lineWidth = 4;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = color;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function end() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        // Bucket Fill
+        canvas.addEventListener("click", (e) => {
+            if (tool !== "bucket") return;
+
+            saveState();
+
+            const { x, y } = getPos(e);
+            floodFill(Math.floor(x), Math.floor(y), hexToRgba(color));
+        });
+
+        function floodFill(x, y, fillColor) {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+
+            const width = canvas.width;
+            const height = canvas.height;
+
+            const targetIndex = (y * width + x) * 4;
+            const targetColor = [
+                data[targetIndex],
+                data[targetIndex + 1],
+                data[targetIndex + 2]
+            ];
+
+            const stack = [[x, y]];
+
+            while (stack.length) {
+                const [cx, cy] = stack.pop();
+
+                if (cx < 0 || cy < 0 || cx >= width || cy >= height) continue;
+
+                const i = (cy * width + cx) * 4;
+
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+
+                // Stop at black borders
+                if (r < 60 && g < 60 && b < 60) continue;
+
+                // Match color with tolerance
+                if (
+                    Math.abs(r - targetColor[0]) > 40 ||
+                    Math.abs(g - targetColor[1]) > 40 ||
+                    Math.abs(b - targetColor[2]) > 40
+                ) continue;
+
+                // Fill
+                data[i] = fillColor[0];
+                data[i + 1] = fillColor[1];
+                data[i + 2] = fillColor[2];
+
+                stack.push([cx + 1, cy]);
+                stack.push([cx - 1, cy]);
+                stack.push([cx, cy + 1]);
+                stack.push([cx, cy - 1]);
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        // Convert HEX to RGBA
+        function hexToRgba(hex) {
+            const num = parseInt(hex.slice(1), 16);
+            return [
+                (num >> 16) & 255,
+                (num >> 8) & 255,
+                num & 255,
+                255
+            ];
+        }
+
+        // Load image
+        function loadImage(src) {
+            const img = new Image();
+            img.src = src;
+
+            img.onload = () => {
+                clearCanvas();
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                cleanImage();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "black";
+                ctx.stroke();
+            };
+        }
+
+        // Clear canvas
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        function cleanImage() {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+
+                const avg = (r + g + b) / 3;
+
+                // 🔥 Convert to pure black or white
+                if (avg < 150) {
+                    data[i] = 0;
+                    data[i + 1] = 0;
+                    data[i + 2] = 0;
+                } else {
+                    data[i] = 255;
+                    data[i + 1] = 255;
+                    data[i + 2] = 255;
+                }
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+        }
+        // Download image
+        function download() {
+            const link = document.createElement("a");
+            link.download = "drawing.png";
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Mouse events
+        canvas.addEventListener("mousedown", start);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", end);
+        canvas.addEventListener("mouseleave", end);
+
+        // Touch events
+        canvas.addEventListener("touchstart", (e) => { e.preventDefault(); start(e); });
+        canvas.addEventListener("touchmove", (e) => { e.preventDefault(); draw(e); });
+        canvas.addEventListener("touchend", end);
+    </script>
+
+</body>
+
+</html>
