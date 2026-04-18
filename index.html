@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>🎨 Coloring App Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
     <style>
         body {
             margin: 0;
@@ -28,7 +29,7 @@
         .canvas-container {
             position: absolute;
             top: 50px;
-            bottom: 80px;
+            bottom: 85px;
             left: 0;
             right: 0;
             display: flex;
@@ -60,6 +61,8 @@
             color: #555;
             cursor: pointer;
             transition: all 0.2s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .tool-btn span {
@@ -93,6 +96,14 @@
             padding: 10px;
             background: #fff;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        /* When open */
+        .gallery.open {
+            transform: translateY(0);
         }
 
         .gallery img {
@@ -192,6 +203,11 @@
             background: rgba(0, 0, 0, 0.3);
             display: none;
         }
+
+        .gallery img.active {
+            border: 3px solid #007bff;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 
@@ -232,9 +248,8 @@
 
         <!-- Bottom Toolbar -->
         <div class="toolbar">
-            <div class="tool-btn">
-                <span>📏</span>
-                <input type="range" min="1" max="20" value="4" id="brushSize">
+            <div class="tool-btn" onclick="toggleGallery()">
+                <span>🖼️</span>Gallery
             </div>
             <div class="color-btn" id="colorBtn" onclick="togglePalette()">🎨</div>
             <div class="tool-btn" id="penBtn" onclick="setToolUI('pen')">
@@ -353,8 +368,12 @@
         function resizeCanvas() {
             const container = document.querySelector(".canvas-container");
 
+            const temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
             canvas.width = container.clientWidth * 0.95;
             canvas.height = container.clientHeight * 0.95;
+
+            ctx.putImageData(temp, 0, 0);
         }
         window.addEventListener("resize", resizeCanvas);
         resizeCanvas();
@@ -369,6 +388,7 @@
 
             ctx.lineWidth = document.getElementById("brushSize").value;
             ctx.lineCap = "round";
+            ctx.lineJoin = "round";
             ctx.strokeStyle = color;
 
             ctx.lineTo(x, y);
@@ -389,6 +409,23 @@
             const { x, y } = getPos(e);
             floodFillFast(Math.floor(x), Math.floor(y), hexToRgb(color));
         });
+
+        let galleryOpen = false;
+
+        function toggleGallery() {
+            const gallery = document.querySelector(".gallery");
+            const canvasContainer = document.querySelector(".canvas-container");
+
+            galleryOpen = !galleryOpen;
+
+            if (galleryOpen) {
+                gallery.classList.add("open");
+                canvasContainer.style.bottom = "170px"; // toolbar + gallery
+            } else {
+                gallery.classList.remove("open");
+                canvasContainer.style.bottom = "85px";
+            }
+        }
 
         // 🔥 Optimized Flood Fill
         function floodFillFast(x, y, fillColor) {
@@ -497,6 +534,14 @@
             link.click();
         }
 
+        function selectImage(el) {
+            document.querySelectorAll(".gallery img").forEach(img => img.classList.remove("active"));
+
+            el.classList.add("active");
+
+            loadImage(el.src);
+            toggleGallery(); // auto close
+        }
         // Events
         canvas.addEventListener("mousedown", start);
         canvas.addEventListener("mousemove", draw);
