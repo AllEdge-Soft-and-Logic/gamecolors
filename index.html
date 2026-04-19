@@ -471,7 +471,8 @@
 
             const { x, y } = getPos(e);
 
-            const size = document.getElementById("brushSize")?.value || 4;
+            const brush = document.getElementById("brushSize");
+            const size = brush ? brush.value : 4;
 
             ctx.lineWidth = size;
             ctx.lineCap = "round";
