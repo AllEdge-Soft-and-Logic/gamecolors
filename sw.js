@@ -1,6 +1,25 @@
-// self.addEventListener("install", e => {
-//     e.waitUntil(caches.open("app").then(c => c.addAll(["/", "index.html"])));
-// });
-// self.addEventListener("fetch", e => {
-//     e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-// });
+const CACHE_NAME = "coloring-app-v1";
+
+const ASSETS = [
+    "/",
+    "/index.html",
+    "/manifest.json",
+    "/img/part.jpg",
+    "/img/bird.jpg",
+    "/img/tiger.jpg",
+    "/img/lion.jpg"
+];
+
+// Install
+self.addEventListener("install", (e) => {
+    e.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    );
+});
+
+// Fetch (offline)
+self.addEventListener("fetch", (e) => {
+    e.respondWith(
+        caches.match(e.request).then(res => res || fetch(e.request))
+    );
+});

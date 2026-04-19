@@ -6,6 +6,7 @@
     <title>🎨 Coloring App Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
     <style>
         body {
             margin: 0;
@@ -565,6 +566,43 @@
             draw(e);
         }, { passive: false });
         canvas.addEventListener("touchend", end);
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("sw.js")
+                    .then(() => console.log("PWA Ready ✅"))
+                    .catch(err => console.log("SW error", err));
+            });
+        }
+        let deferredPrompt;
+
+        window.addEventListener("beforeinstallprompt", (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show custom install button
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            const btn = document.createElement("button");
+            btn.innerText = "📲 Install App";
+            btn.style.position = "fixed";
+            btn.style.top = "60px";
+            btn.style.right = "10px";
+            btn.style.zIndex = "999";
+            btn.style.padding = "10px";
+
+            document.body.appendChild(btn);
+
+            btn.onclick = () => {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {
+                    deferredPrompt = null;
+                    btn.remove();
+                });
+            };
+        }
     </script>
 
 </body>
