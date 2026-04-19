@@ -43,36 +43,43 @@
             position: fixed;
             bottom: 0;
             width: 100%;
-            height: 85px;
-            background: #fff;
+            height: 80px;
+            background: var(--toolbar-bg, #fff);
             display: flex;
-            justify-content: space-evenly;
+            justify-content: space-around;
             align-items: center;
-            box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.15);
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
+            padding: 0 10px;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
         }
 
         /* Buttons */
         .tool-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex: 1;
+            text-align: center;
             font-size: 11px;
-            color: #555;
+            color: #666;
             cursor: pointer;
             transition: all 0.2s ease;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
         }
 
+        /* Icon */
         .tool-btn span {
-            font-size: 24px;
+            display: block;
+            font-size: 22px;
+            margin-bottom: 3px;
         }
 
+        /* Active state */
         .tool-btn.active {
-            color: #007bff;
-            transform: scale(1.1);
+            color: var(--primary, #007bff);
+            font-weight: bold;
+        }
+
+        /* Tap effect */
+        .tool-btn:active {
+            transform: scale(0.9);
         }
 
         /* Floating color picker */
@@ -157,7 +164,7 @@
 
         .colors {
             display: grid;
-            grid-template-columns: repeat(4, 50px);
+            grid-template-columns: repeat(6, 50px);
             gap: 12px;
         }
 
@@ -292,14 +299,39 @@
             <div class="palette-overlay" id="paletteOverlay" onclick="togglePalette()"></div>
             <div class="palette-popup" id="palettePopup">
                 <div class="colors">
+                    <!-- Row 1 -->
                     <div style="background:#ff0000" onclick="pickColor('#ff0000', this)"></div>
-                    <div style="background:#ff9900" onclick="pickColor('#ff9900', this)"></div>
+                    <div style="background:#ff7f00" onclick="pickColor('#ff7f00', this)"></div>
                     <div style="background:#ffff00" onclick="pickColor('#ffff00', this)"></div>
-                    <div style="background:#00cc00" onclick="pickColor('#00cc00', this)"></div>
-                    <div style="background:#0099ff" onclick="pickColor('#0099ff', this)"></div>
-                    <div style="background:#9900cc" onclick="pickColor('#9900cc', this)"></div>
+                    <div style="background:#00ff00" onclick="pickColor('#00ff00', this)"></div>
+                    <div style="background:#00ffff" onclick="pickColor('#00ffff', this)"></div>
+                    <div style="background:#0000ff" onclick="pickColor('#0000ff', this)"></div>
+
+                    <!-- Row 2 -->
+                    <div style="background:#8b00ff" onclick="pickColor('#8b00ff', this)"></div>
+                    <div style="background:#ff1493" onclick="pickColor('#ff1493', this)"></div>
+                    <div style="background:#a52a2a" onclick="pickColor('#a52a2a', this)"></div>
+                    <div style="background:#deb887" onclick="pickColor('#deb887', this)"></div>
+                    <div style="background:#ffd700" onclick="pickColor('#ffd700', this)"></div>
+                    <div style="background:#808000" onclick="pickColor('#808000', this)"></div>
+
+                    <!-- Row 3 -->
+                    <div style="background:#006400" onclick="pickColor('#006400', this)"></div>
+                    <div style="background:#20b2aa" onclick="pickColor('#20b2aa', this)"></div>
+                    <div style="background:#4682b4" onclick="pickColor('#4682b4', this)"></div>
+                    <div style="background:#4b0082" onclick="pickColor('#4b0082', this)"></div>
+                    <div style="background:#800080" onclick="pickColor('#800080', this)"></div>
+                    <div style="background:#c71585" onclick="pickColor('#c71585', this)"></div>
+
+                    <!-- Row 4 -->
                     <div style="background:#000000" onclick="pickColor('#000000', this)"></div>
+                    <div style="background:#555555" onclick="pickColor('#555555', this)"></div>
+                    <div style="background:#aaaaaa" onclick="pickColor('#aaaaaa', this)"></div>
                     <div style="background:#ffffff;border:2px solid #ccc" onclick="pickColor('#ffffff', this)"></div>
+                    <div style="background:#ffcccb" onclick="pickColor('#ffcccb', this)"></div>
+                    <div style="background:#ffe4b5" onclick="pickColor('#ffe4b5', this)"></div>
+                    <input type="color" onchange="pickColor(this.value)"
+                        style="width:50px;height:50px;border:none;padding:0;border-radius:50%;cursor:pointer;">
                 </div>
             </div>
         </div>

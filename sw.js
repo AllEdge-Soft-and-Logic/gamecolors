@@ -1,4 +1,4 @@
-const CACHE_NAME = "coloring-app-v1.5"; // 🔥 change version on every update
+const CACHE_NAME = "coloring-app-v1.8"; // 🔥 change version on every update
 
 const ASSETS = [
     "/",
