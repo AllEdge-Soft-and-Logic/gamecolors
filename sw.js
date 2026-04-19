@@ -1,4 +1,4 @@
-const CACHE_NAME = "coloring-app-v1";
+const CACHE_NAME = "coloring-app-v1.0";
 
 const ASSETS = [
     "/",
