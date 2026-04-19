@@ -8,11 +8,25 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007bff">
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
             background: #f5f6fa;
             overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Also apply to buttons specifically */
+        .tool-btn,
+        .color-btn,
+        .gallery img {
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         /* Top bar */
