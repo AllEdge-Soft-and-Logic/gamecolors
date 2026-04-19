@@ -209,11 +209,76 @@
             border: 3px solid #007bff;
             transform: scale(1.05);
         }
+
+        /* SPLASH */
+        #splash {
+            position: fixed;
+            inset: 0;
+            background: #007bff;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeOut 1s ease 2s forwards;
+        }
+
+        #splash .logo {
+            font-size: 60px;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        /* LOADER */
+        #loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 9999;
+        }
+
+        /* INSTALL BANNER */
+        .install-banner {
+            position: fixed;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: 0.4s;
+            z-index: 999;
+        }
+
+        .install-banner.show {
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 
 <body>
+    <audio id="clickSound" src="sounds/click.mp3"></audio>
+    <audio id="fillSound" src="sounds/fill.mp3"></audio>
+    <div id="splash">
+        <div class="logo">🎨</div>
+        <h2>Coloring App</h2>
+    </div>
 
+    <div id="loader">Loading...</div>
     <div class="app">
 
         <div class="header">🎨 Coloring App</div>
@@ -249,8 +314,12 @@
 
         <!-- Bottom Toolbar -->
         <div class="toolbar">
-            <div class="tool-btn" onclick="toggleGallery()">
+            <div class="tool-btn" id="galleryBtn" onclick="toggleGallery()">
                 <span>🖼️</span>Gallery
+            </div>
+            <div class="tool-btn">
+                <span>📏</span>
+                <input type="range" min="1" max="20" value="4" id="brushSize">
             </div>
             <div class="color-btn" id="colorBtn" onclick="togglePalette()">🎨</div>
             <div class="tool-btn" id="penBtn" onclick="setToolUI('pen')">
@@ -321,6 +390,18 @@
                 paletteOpen = false;
             }
         });
+        document.addEventListener("click", function (e) {
+            const gallery = document.querySelector(".gallery");
+            const galleryBtn = document.getElementById("galleryBtn");
+
+            if (
+                galleryOpen &&
+                !gallery.contains(e.target) &&
+                !galleryBtn.contains(e.target)
+            ) {
+                closeGallery();
+            }
+        });
         // Tool
         function setTool(t) {
             tool = t;
@@ -369,7 +450,10 @@
         function resizeCanvas() {
             const container = document.querySelector(".canvas-container");
 
-            const temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let temp;
+            try {
+                temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            } catch (e) { }
 
             canvas.width = container.clientWidth * 0.95;
             canvas.height = container.clientHeight * 0.95;
@@ -387,7 +471,10 @@
 
             const { x, y } = getPos(e);
 
-            ctx.lineWidth = document.getElementById("brushSize").value;
+            const brush = document.getElementById("brushSize");
+            const size = brush ? brush.value : 4; // ✅ fallback
+
+            ctx.lineWidth = size;
             ctx.lineCap = "round";
             ctx.lineJoin = "round";
             ctx.strokeStyle = color;
@@ -462,7 +549,8 @@
                 const r = data[i], g = data[i + 1], b = data[i + 2];
 
                 // Border stop
-                if (r < 60 && g < 60 && b < 60) continue;
+                const isBorder = (r < 20 && g < 20 && b < 20);
+                if (isBorder) continue;
 
                 // Color match
                 if (
@@ -493,17 +581,23 @@
 
         // Load image (optimized)
         function loadImage(src) {
+            const loader = document.getElementById("loader");
+            loader.style.display = "block";
+
+            canvas.style.opacity = 0.3;
+
             const img = new Image();
             img.src = src;
 
             img.onload = () => {
                 clearCanvas();
-
-                // Fit image to canvas
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                // Clean only once
                 cleanImageFast();
+
+                canvas.style.transition = "0.3s";
+                canvas.style.opacity = 1;
+
+                loader.style.display = "none";
             };
         }
 
@@ -544,13 +638,8 @@
             toggleGallery(); // auto close
         }
         // Events
-        canvas.addEventListener("mousedown", start);
-        canvas.addEventListener("mousemove", draw);
-        canvas.addEventListener("mouseup", end);
-        canvas.addEventListener("mouseleave", end);
-
-        canvas.addEventListener("touchstart", (e) => {
-            e.preventDefault();
+        canvas.addEventListener("mousedown", (e) => {
+            if (galleryOpen) closeGallery();
 
             if (tool === "bucket") {
                 saveState();
@@ -559,6 +648,35 @@
             } else {
                 start(e);
             }
+        });
+
+        function closeGallery() {
+            const gallery = document.querySelector(".gallery");
+            const canvasContainer = document.querySelector(".canvas-container");
+
+            gallery.classList.remove("open");
+            canvasContainer.style.bottom = "85px";
+            galleryOpen = false;
+        }
+
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", end);
+        canvas.addEventListener("mouseleave", end);
+
+        canvas.addEventListener("touchstart", (e) => {
+
+            if (e.cancelable) e.preventDefault(); // ✅ FIX
+
+            if (galleryOpen) closeGallery();
+
+            if (tool === "bucket") {
+                saveState();
+                const { x, y } = getPos(e);
+                floodFillFast(Math.floor(x), Math.floor(y), hexToRgb(color));
+            } else {
+                start(e);
+            }
+
         }, { passive: false });
 
         canvas.addEventListener("touchmove", (e) => {
@@ -580,20 +698,21 @@
             e.preventDefault();
             deferredPrompt = e;
 
-            // Show custom install button
-            showInstallButton();
+            // ✅ Show only once
+            if (!localStorage.getItem("installedPromptShown")) {
+                showInstallButton();
+                localStorage.setItem("installedPromptShown", "yes");
+            }
         });
 
         function showInstallButton() {
-            const btn = document.createElement("button");
+            const btn = document.createElement("div");
             btn.innerText = "📲 Install App";
-            btn.style.position = "fixed";
-            btn.style.top = "60px";
-            btn.style.right = "10px";
-            btn.style.zIndex = "999";
-            btn.style.padding = "10px";
+            btn.className = "install-banner";
 
             document.body.appendChild(btn);
+
+            setTimeout(() => btn.classList.add("show"), 200);
 
             btn.onclick = () => {
                 deferredPrompt.prompt();
@@ -603,6 +722,24 @@
                 });
             };
         }
+        function playSound(id) {
+            const sound = document.getElementById(id);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play();
+            }
+        }
+        window.onload = () => {
+            // Default tool
+            setToolUI("pen");
+
+            // Highlight first color
+            const firstColor = document.querySelector(".colors div");
+            if (firstColor) firstColor.classList.add("active");
+
+            // Set button color visually
+            document.getElementById("colorBtn").style.background = color;
+        };
     </script>
 
 </body>
