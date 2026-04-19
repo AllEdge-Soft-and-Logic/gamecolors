@@ -338,10 +338,43 @@
 
         <!-- Gallery (scroll like app) -->
         <div class="gallery">
-            <img src="img/part.jpg" onclick="loadImage(this.src)">
-            <img src="img/bird.jpg" onclick="loadImage(this.src)">
-            <img src="img/tiger.jpg" onclick="loadImage(this.src)">
-            <img src="img/lion.jpg" onclick="loadImage(this.src)">
+            <img src="img/1.jpg" onclick="loadImage(this.src)">
+            <img src="img/2.jpg" onclick="loadImage(this.src)">
+            <img src="img/3.jpg" onclick="loadImage(this.src)">
+            <img src="img/4.jpg" onclick="loadImage(this.src)">
+            <img src="img/5.jpg" onclick="loadImage(this.src)">
+            <img src="img/6.jpg" onclick="loadImage(this.src)">
+            <img src="img/7.jpg" onclick="loadImage(this.src)">
+            <img src="img/8.jpg" onclick="loadImage(this.src)">
+            <img src="img/9.jpg" onclick="loadImage(this.src)">
+            <img src="img/10.jpg" onclick="loadImage(this.src)">
+            <img src="img/11.jpg" onclick="loadImage(this.src)">
+            <img src="img/12.jpg" onclick="loadImage(this.src)">
+            <img src="img/13.jpg" onclick="loadImage(this.src)">
+            <img src="img/14.jpg" onclick="loadImage(this.src)">
+            <img src="img/15.jpg" onclick="loadImage(this.src)">
+            <img src="img/16.jpg" onclick="loadImage(this.src)">
+            <img src="img/17.jpg" onclick="loadImage(this.src)">
+            <img src="img/18.jpg" onclick="loadImage(this.src)">
+            <img src="img/19.jpg" onclick="loadImage(this.src)">
+            <img src="img/20.jpg" onclick="loadImage(this.src)">
+            <img src="img/21.jpg" onclick="loadImage(this.src)">
+            <img src="img/22.jpg" onclick="loadImage(this.src)">
+            <img src="img/23.jpg" onclick="loadImage(this.src)">
+            <img src="img/24.jpg" onclick="loadImage(this.src)">
+            <img src="img/25.jpg" onclick="loadImage(this.src)">
+            <img src="img/26.jpg" onclick="loadImage(this.src)">
+            <img src="img/27.jpg" onclick="loadImage(this.src)">
+            <img src="img/28.jpg" onclick="loadImage(this.src)">
+            <img src="img/29.jpg" onclick="loadImage(this.src)">
+            <img src="img/30.jpg" onclick="loadImage(this.src)">
+            <img src="img/31.jpg" onclick="loadImage(this.src)">
+            <img src="img/32.jpg" onclick="loadImage(this.src)">
+            <img src="img/33.jpg" onclick="loadImage(this.src)">
+            <img src="img/34.jpg" onclick="loadImage(this.src)">
+            <img src="img/35.jpg" onclick="loadImage(this.src)">
+            <img src="img/36.jpg" onclick="loadImage(this.src)">
+
         </div>
 
         <!-- Bottom Toolbar -->
@@ -536,14 +569,26 @@
             const gallery = document.querySelector(".gallery");
             const canvasContainer = document.querySelector(".canvas-container");
 
+            const overlay = document.getElementById("paletteOverlay");
+            const popup = document.getElementById("palettePopup");
+
             galleryOpen = !galleryOpen;
 
             if (galleryOpen) {
                 gallery.classList.add("open");
-                canvasContainer.style.bottom = "170px"; // toolbar + gallery
+                canvasContainer.style.bottom = "170px";
+
+                // 🔥 HIDE palette when gallery opens
+                overlay.style.display = "none";
+                popup.style.display = "none";
+                paletteOpen = false;
+
             } else {
                 gallery.classList.remove("open");
                 canvasContainer.style.bottom = "85px";
+
+                // ✅ (optional) allow palette again when closed
+                // no need to force show here
             }
         }
 
