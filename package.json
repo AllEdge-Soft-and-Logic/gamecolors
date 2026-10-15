@@ -1,0 +1,9 @@
+{
+  "name": "coloring-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gallery": "node tools/generate-images.mjs",
+    "watch:gallery": "node --watch-path=img tools/generate-images.mjs"
+  }
+}
