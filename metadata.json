@@ -1,0 +1,7 @@
+{
+  "name": "Coloring App Pro",
+  "description": "An interactive digital coloring book app with outline binarization, scanline flood fill, custom brushes, vibrant palette, undo history, and downloadable artwork.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
